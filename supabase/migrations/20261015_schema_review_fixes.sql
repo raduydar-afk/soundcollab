@@ -77,6 +77,31 @@ begin
 end;
 $$;
 
+insert into public.profiles (
+  id, display_name, roles, is_admin, privacy_accepted_at, privacy_policy_version
+)
+select
+  u.id,
+  coalesce(nullif(trim(u.raw_user_meta_data ->> 'display_name'), ''), split_part(u.email, '@', 1)),
+  role_data.roles,
+  false,
+  coalesce(u.created_at, now()),
+  coalesce(nullif(u.raw_user_meta_data ->> 'privacy_policy_version', ''), '2026-10-15')
+from auth.users u
+cross join lateral (
+  select coalesce(array_agg(distinct role_name), array['client']::text[]) as roles
+  from jsonb_array_elements_text(
+    case
+      when jsonb_typeof(u.raw_user_meta_data -> 'roles') = 'array'
+        then u.raw_user_meta_data -> 'roles'
+      else '["client"]'::jsonb
+    end
+  ) as requested(role_name)
+  where role_name in ('client', 'performer')
+) as role_data
+where u.raw_user_meta_data ->> 'privacy_consent' = 'true'
+on conflict (id) do nothing;
+
 create or replace function public.guard_order_mutation()
 returns trigger
 language plpgsql

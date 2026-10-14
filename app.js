@@ -38,7 +38,19 @@ const formatDate = (value) => {
   const date = new Date(value);
   return Number.isNaN(date.valueOf()) ? "Дата не вказана" : date.toLocaleString("uk-UA", { dateStyle: "medium", timeStyle: value.includes("T") ? "short" : undefined });
 };
-const messageForError = (error) => error?.message || "Не вдалося виконати запит. Перевірте з’єднання й налаштування Supabase.";
+const messageForError = (error) => {
+  const message = String(error?.message || "");
+  if (error?.code === "PGRST205" || /could not find the table ['"]?public\.profiles['"]? in the schema cache/i.test(message)) {
+    return "У Supabase ще не створена таблиця public.profiles. Відкрийте правильний проєкт у Supabase Dashboard → SQL Editor, виконайте актуальний supabase/schema.sql з репозиторію та після успішного запуску оновіть сторінку.";
+  }
+  if (error?.code === "42P01" && /profiles/i.test(message)) {
+    return "Таблиця public.profiles відсутня. Виконайте актуальний supabase/schema.sql у SQL Editor потрібного Supabase-проєкту, потім оновіть сторінку.";
+  }
+  if (/invalid login credentials|invalid_credentials/i.test(message)) {
+    return "Неправильний email або пароль. Перевірте дані входу; якщо пароль забуто, скористайтеся посиланням «Забули пароль?».";
+  }
+  return message || "Не вдалося виконати запит. Перевірте з’єднання й налаштування Supabase.";
+};
 const setMessage = (selector, value, isError = false) => {
   const target = $(selector);
   if (!target) return;
