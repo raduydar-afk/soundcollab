@@ -1,11 +1,4 @@
-let createClient;
-let supabaseImportError;
-try {
-  ({ createClient } = await import("https://esm.sh/@supabase/supabase-js@2"));
-} catch (error) {
-  supabaseImportError = error;
-}
-
+const createClient = window.supabase?.createClient;
 const SUPABASE_URL = window.SOUNDCOLLAB_SUPABASE_URL;
 const SUPABASE_ANON_KEY = window.SOUNDCOLLAB_SUPABASE_ANON_KEY;
 const configured = typeof createClient === "function" && Boolean(
@@ -632,8 +625,8 @@ async function loadOrderPage(user, profile) {
 }
 
 async function init() {
-  if (supabaseImportError) {
-    setNotice(`Не вдалося завантажити бібліотеку Supabase. Перевірте інтернет-з’єднання та повторіть спробу: ${messageForError(supabaseImportError)}`, true);
+  if (typeof createClient !== "function") {
+    setNotice("Не вдалося завантажити локальну бібліотеку Supabase. Перевірте наявність vendor/supabase-js-2.117.3.js і повторіть спробу.", true);
     $$("button[type='submit']").forEach((button) => { button.disabled = true; });
     return;
   }

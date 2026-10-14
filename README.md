@@ -20,7 +20,7 @@ python3 -m http.server 8000
 # відкрийте http://localhost:8000
 ```
 
-Потрібне підключення до інтернету для завантаження браузерної бібліотеки Supabase з `esm.sh`. URL та публічний ключ уже задані в `supabase-config.js`, але Auth, таблиці, Storage та Realtime запрацюють лише після застосування схеми й налаштування проєкту. Якщо конфіг містить placeholders, кабінети покажуть попередження замість імітації успіху. Контактні форми зберігають наявний безпечний demo-fallback на `mailto:sound.collab.official@gmail.com`; телефон у HTML — demo placeholder.
+Supabase JS 2.117.3 постачається локально у `vendor/supabase-js-2.117.3.js`, тому сторінки кабінету не завантажують SDK з CDN. URL та публічний ключ уже задані в `supabase-config.js`, але Auth, таблиці, Storage та Realtime запрацюють лише після застосування схеми й налаштування проєкту. Якщо конфіг містить placeholders, кабінети покажуть попередження замість імітації успіху. Контактні форми зберігають наявний безпечний demo-fallback на `mailto:sound.collab.official@gmail.com`; телефон у HTML — demo placeholder.
 
 ## Налаштування Supabase
 
@@ -59,7 +59,7 @@ python3 -m http.server 8000
 
 Для тестового проєкту, де попередня версія `schema.sql` вже застосована, запускайте [`supabase/migrations/20261015_schema_review_fixes.sql`](supabase/migrations/20261015_schema_review_fixes.sql) один раз у Supabase SQL Editor. Файл використовує транзакцію і в разі помилки має відкотити зміни; перед запуском зробіть backup та перевірте наявні self-assignment/duplicate open dispute рядки, які блокують constraints. Для нового проєкту достатньо актуальної `schema.sql`; migration вдруге не запускати.
 
-`supabase-config.js` містить Project URL і public publishable/anon key, а не секрет. Будь-який відвідувач може прочитати браузерний код і цей ключ; безпека залежить від коректних SQL-політик і налаштувань Supabase.
+`supabase-config.js` містить Project URL і public publishable/anon key, а не секрет. Будь-який відвідувач може прочитати браузерний код і цей ключ; безпека залежить від коректних SQL-політик і налаштувань Supabase. Supabase JS закріплений на версії `2.117.3`; ліцензія включена в `vendor/SUPABASE-JS-LICENSE.txt`.
 
 ## Схема та контроль доступу
 
@@ -76,6 +76,16 @@ python3 -m http.server 8000
 ## GitHub Pages
 
 `.github/workflows/pages.yml` публікує статичні файли з `main` через GitHub Actions. У **Settings → Pages** використовуйте GitHub Actions. Supabase URL і anon key можна зберігати в tracked `supabase-config.js`, але service key — ні. Після зміни Auth redirect allowlist перевірте email callback на production URL. GitHub Pages не виконує серверний код і не приховує браузерні значення.
+
+`.github/workflows/db-tests.yml` на кожен pull request запускає `supabase/tests/test_rls.py` проти чистого PostgreSQL 17, застосовуючи тестовий mock platform і `supabase/schema.sql`. Сценарій перевіряє RLS, переходи статусів, ролі, повідомлення, зустрічі, deliverables, арбітраж, Storage і права DB-функцій; mock призначений лише для CI й тестів, не застосовуйте його до реального Supabase-проєкту. Локальний запуск потребує PostgreSQL та `psycopg2-binary==2.9.10`:
+
+```bash
+export PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=sc_test SC_APPLY_SCHEMA=1
+python3 -m pip install psycopg2-binary==2.9.10
+python3 supabase/tests/test_rls.py
+```
+
+Тест застосовує схему лише коли задано `SC_APPLY_SCHEMA`; база має бути чистою. `schema.sql` більше не створює `pgcrypto`: CI використовує PostgreSQL 17, де `gen_random_uuid()` є вбудованою функцією.
 
 ## Ручний acceptance test
 

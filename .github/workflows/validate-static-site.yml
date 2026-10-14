@@ -18,6 +18,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check script.js
+          node --check vendor/supabase-js-2.117.3.js
           node --input-type=module --check < app.js
       - name: Validate HTML pages and local links
         run: |

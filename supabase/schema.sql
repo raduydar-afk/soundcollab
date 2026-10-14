@@ -1,8 +1,6 @@
 -- SoundCollab MVP schema for Supabase. Run in the Supabase SQL editor.
 begin;
 
-create extension if not exists pgcrypto;
-
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default '',
