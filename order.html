@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Замовлення SoundCollab: чат, зустрічі, файли й історія змін.">
+  <title>Робочий простір замовлення — SoundCollab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="inner-page dashboard-page">
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><span class="brand-mark"><span></span><span></span><span></span></span><span>sound<span>collab</span></span></a><nav class="desktop-nav"><a href="client.html">Кабінет клієнта</a><a href="specialist.html">Кабінет виконавця</a></nav><button class="button button-small button-accent" type="button" data-sign-out hidden>Вийти</button></div></header>
+  <main>
+    <section class="dashboard-hero section-pad"><div class="container dash-top"><div><p class="eyebrow">Order workspace · приватний доступ</p><h1 id="order-title">Завантажуємо замовлення…</h1><p id="order-subtitle" class="muted"></p></div><span id="order-status" class="status-badge"></span></div></section>
+    <section class="dashboard-content section-pad"><div class="container">
+      <p id="app-notice" class="app-notice" role="status">Перевіряємо доступ…</p>
+      <div id="auth-required" class="app-panel" hidden><h2>Потрібен вхід</h2><a class="button button-primary" href="auth.html">Увійти</a></div>
+      <div id="order-workspace" class="order-workspace-grid" hidden>
+        <section class="app-panel">
+          <div class="dash-toolbar"><div><h2>Керування замовленням</h2><p id="order-participants" class="muted"></p></div><a href="client.html" class="text-link">До кабінету клієнта →</a></div>
+          <div id="order-actions" class="order-actions"></div>
+          <div id="meeting-section" class="subpanel"><h3>Зустрічі</h3><p class="meeting-safety">Для першої особистої зустрічі обирайте публічне місце та не передавайте чутливі дані.</p><div id="meetings-list"></div>
+            <form id="meeting-form" class="app-form"><h4>Запропонувати зустріч</h4><label>Формат<select name="meeting_type"><option value="remote">Дистанційно</option><option value="in_person">Особисто</option></select></label><label>Дата й час<input name="scheduled_at" type="datetime-local" required></label>
+              <div data-remote-fields><label>Посилання на Zoom, Meet, Teams або Jitsi<input name="meeting_url" type="url" placeholder="https://meet.jit.si/…"></label><button class="text-button" type="button" data-create-jitsi>Створити кімнату Jitsi</button></div>
+              <div data-inperson-fields hidden><label>Публічне місце зустрічі<input name="location" maxlength="250" placeholder="Назва закладу або адреса"></label><label>Посилання на карту<input name="map_url" type="url" placeholder="https://maps.google.com/…"></label></div>
+              <button class="button button-primary" type="submit">Надіслати пропозицію</button><p class="form-message" id="meeting-message" role="status"></p>
+            </form>
+          </div>
+          <div class="subpanel"><h3>Файли та результат</h3><p>Для великих аудіоархівів використовуйте доступне лише учасникам посилання. Вбудоване сховище має ліміт 50 МБ на файл.</p><form id="deliverable-form" class="app-form"><label>Посилання на роботу<input name="link_url" type="url" placeholder="https://…"></label><label>Або невеликий файл до 50 МБ<input name="file" type="file"></label><label>Коментар<textarea name="note" rows="2" maxlength="1000"></textarea></label><button class="button button-primary" type="submit">Здати роботу</button><p class="form-message" id="deliverable-message" role="status"></p></form><div id="deliverables-list"></div><div id="order-files-list"></div></div>
+          <div class="subpanel"><h3>Журнал замовлення</h3><ol id="order-events" class="event-list"></ol></div>
+        </section>
+        <section class="app-panel chat-panel"><h2>Чат замовлення</h2><p class="muted">Повідомлення доступні учасникам замовлення; адміністратор отримує доступ лише поки відкритий спір. Надіслані повідомлення не редагуються.</p><ol id="messages-list" class="messages-list" aria-live="polite"></ol><form id="message-form" class="app-form"><label>Повідомлення<textarea name="body" rows="3" required maxlength="5000" placeholder="Напишіть учаснику замовлення"></textarea></label><button class="button button-primary" type="submit">Надіслати</button><p id="message-status" class="form-message" role="status"></p></form>
+          <form id="admin-dispute" class="subpanel app-form" hidden><h3>Розгляд спору</h3><p>Доступно лише адміністраторам, призначеним у БД. Доступ до замовлення, чату й файлів обмежений відкритим спором.</p><label>Рішення<select name="decision" required><option value="requested">Повернути до запитів</option><option value="accepted">Підтвердити прийняття</option><option value="in_progress">Повернути в роботу</option><option value="completed">Завершити замовлення</option><option value="cancelled">Скасувати замовлення</option></select></label><label>Пояснення рішення<textarea name="resolution" rows="3" required minlength="5" maxlength="2000"></textarea></label><button class="button button-accent" type="submit">Зафіксувати рішення</button><p id="admin-message" class="form-message" role="status"></p></form>
+        </section>
+      </div>
+    </div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-bottom"><span>SoundCollab · order workspace</span><span>Платежі та ескроу не підключені — не надсилайте платіжні дані в чат.</span></div></footer>
+  <script src="supabase-config.js"></script><script type="module" src="app.js"></script>
+</body>
+</html>

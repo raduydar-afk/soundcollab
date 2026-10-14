@@ -26,7 +26,7 @@ document.querySelector("#request-form")?.addEventListener("submit", (event) => {
   const body = encodeURIComponent("Привіт! Хочу обговорити проєкт через SoundCollab.\n\nДеталі запиту:\n");
   message.textContent = "Готово — відкриваємо поштовий клієнт для безпечного демо-запиту.";
   window.setTimeout(() => {
-    window.location.href = `mailto:hello@soundcollab.space?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:sound.collab.official@gmail.com?subject=${subject}&body=${body}`;
   }, 350);
 });
 
@@ -46,7 +46,7 @@ document.querySelector("#contact-form")?.addEventListener("submit", (event) => {
   );
   message.textContent = "Готово — відкриваємо ваш поштовий клієнт.";
   window.setTimeout(() => {
-    window.location.href = `mailto:hello@soundcollab.space?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:sound.collab.official@gmail.com?subject=${subject}&body=${body}`;
   }, 350);
 });
 

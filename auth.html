@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Вхід, реєстрація та відновлення пароля SoundCollab.">
+  <title>Акаунт — SoundCollab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="inner-page dashboard-page">
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html"><span class="brand-mark"><span></span><span></span><span></span></span><span>sound<span>collab</span></span></a><nav class="desktop-nav"><a href="services.html">Послуги</a><a href="client.html">Кабінет клієнта</a><a href="specialist.html">Кабінет виконавця</a></nav><a class="login-link" href="index.html">На головну</a></div></header>
+  <main class="dashboard-content section-pad">
+    <div class="container auth-layout">
+      <div><p class="eyebrow">SoundCollab account</p><h1>Почни <em>співпрацю.</em></h1><p class="muted">Email підтверджується посиланням. Один акаунт може мати обидві ролі.</p><p id="app-notice" class="app-notice" role="status">Перевіряємо підключення…</p></div>
+      <div class="auth-card">
+        <form id="login-form" class="app-form">
+          <h2>Вхід</h2>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <label>Пароль<input name="password" type="password" autocomplete="current-password" minlength="8" required></label>
+          <button class="button button-primary" type="submit">Увійти</button>
+          <button class="text-button" type="button" data-show-reset>Забули пароль?</button>
+          <p class="form-message" id="login-message" role="status"></p>
+        </form>
+        <form id="signup-form" class="app-form">
+          <h2>Створити акаунт</h2>
+          <label>Ваше ім’я<input name="display_name" autocomplete="name" maxlength="100" required></label>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <label>Пароль<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+          <fieldset class="role-fieldset"><legend>Я хочу бути…</legend>
+            <label class="checkbox-label"><input type="checkbox" name="roles" value="client" checked> Замовником</label>
+            <label class="checkbox-label"><input type="checkbox" name="roles" value="performer"> Виконавцем</label>
+          </fieldset>
+          <label class="checkbox-label consent-label"><input type="checkbox" name="privacy_consent" required> Погоджуюся з <a href="privacy.html">політикою конфіденційності</a> та обробкою даних для роботи сервісу.</label>
+          <button class="button button-accent" type="submit">Зареєструватися</button>
+          <p class="form-message" id="signup-message" role="status"></p>
+        </form>
+        <form id="reset-form" class="app-form" hidden>
+          <h2>Відновлення пароля</h2>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <button class="button button-primary" type="submit">Надіслати посилання</button>
+          <p class="form-message" id="reset-message" role="status"></p>
+        </form>
+        <form id="new-password-form" class="app-form" hidden>
+          <h2>Новий пароль</h2>
+          <label>Новий пароль<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+          <button class="button button-primary" type="submit">Зберегти пароль</button>
+          <p class="form-message" id="new-password-message" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-bottom"><span>SoundCollab · MVP</span><span>Налаштуйте Supabase email templates та redirect URLs згідно з README.</span></div></footer>
+  <script src="supabase-config.js"></script><script type="module" src="app.js"></script>
+</body>
+</html>
