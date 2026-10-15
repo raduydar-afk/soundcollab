@@ -15,6 +15,30 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check script.js
+          node --check vendor/supabase-js-2.117.3.js
+          node --input-type=module --check < app.js
+      - name: Verify pinned Supabase JS checksum
+        run: |
+          python3 - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import re
+
+          checksum_file = Path("vendor/SUPABASE-JS-SHA256.txt")
+          bundle_file = Path("vendor/supabase-js-2.117.3.js")
+          first_line = checksum_file.read_text(encoding="utf-8").splitlines()[0]
+          match = re.fullmatch(r"([0-9a-f]{64})  vendor/supabase-js-2\.117\.3\.js", first_line)
+          if not match:
+              raise SystemExit("Checksum manifest does not identify the pinned Supabase JS bundle")
+          expected = match.group(1)
+          actual = sha256(bundle_file.read_bytes()).hexdigest()
+          if actual != expected:
+              raise SystemExit(f"Supabase JS checksum mismatch: expected {expected}, got {actual}")
+          print(f"Verified {bundle_file}: {actual}")
+          PY
       - name: Validate HTML pages and local links
         run: |
           python3 - <<'PY'
