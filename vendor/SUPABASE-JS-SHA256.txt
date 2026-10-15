@@ -1,0 +1,2 @@
+d6a5c4414a5d4ce646d9c1de223aa7067d3ff664c15394ffeb7fcffc763354a3  vendor/supabase-js-2.117.3.js
+# source: npm @supabase/supabase-js@2.117.3 dist/umd/supabase.js (tarball integrity sha512-K+f8PimXDunPWQ63CKRXaF5pbVPJxmfw5ryAnh0s9S9PkwcuqBjiSpIaqpF7KLDljeYwXIL85ST8QxaO0+XuvA==)

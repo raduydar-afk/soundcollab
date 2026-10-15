@@ -22,7 +22,7 @@ python3 -m http.server 8000
 # відкрийте http://localhost:8000
 ```
 
-Supabase JS 2.117.3 постачається локально у `vendor/supabase-js-2.117.3.js`, тому сторінки кабінету не завантажують SDK з CDN. URL та публічний ключ уже задані в `supabase-config.js`, але Auth, таблиці, Storage та Realtime запрацюють лише після застосування схеми й налаштування проєкту. Якщо конфіг містить placeholders, кабінети покажуть попередження замість імітації успіху. Контактні форми зберігають наявний безпечний demo-fallback на `mailto:sound.collab.official@gmail.com`; телефон у HTML — demo placeholder.
+Supabase JS 2.117.3 постачається локально у `vendor/supabase-js-2.117.3.js`; офіційна npm-копія має контрольну суму в `vendor/SUPABASE-JS-SHA256.txt`, яку перевіряє CI. Сторінки кабінету не завантажують SDK з CDN. URL та публічний ключ уже задані в `supabase-config.js`, але Auth, таблиці, Storage та Realtime запрацюють лише після застосування схеми й налаштування проєкту. Якщо конфіг містить placeholders, кабінети покажуть попередження замість імітації успіху. Контактні форми зберігають наявний безпечний demo-fallback на `mailto:sound.collab.official@gmail.com`; телефон у HTML — demo placeholder.
 
 ## Налаштування Supabase
 
@@ -68,6 +68,8 @@ Supabase JS 2.117.3 постачається локально у `vendor/supabas
 ### Застосування патчу до вже налаштованої схеми
 
 Для тестового проєкту, де попередня версія `schema.sql` вже застосована, запускайте [`supabase/migrations/20261015_schema_review_fixes.sql`](supabase/migrations/20261015_schema_review_fixes.sql) один раз у Supabase SQL Editor. Файл використовує транзакцію і в разі помилки має відкотити зміни; перед запуском зробіть backup та перевірте наявні self-assignment/duplicate open dispute рядки, які блокують constraints. Для нового проєкту достатньо актуальної `schema.sql`; migration вдруге не запускати.
+
+Для проєкту, де схема вже розгорнута і потрібно окремо закрити прямий REST-доступ до trigger-функцій, перегляньте [`supabase/db-harden-live.sql`](supabase/db-harden-live.sql) та виконайте його вручну в SQL Editor. Цей live SQL не запускається автоматично в CI і не був застосований до віддаленого проєкту. Він також відкликає виконання helper-функції `public.rls_auto_enable()`, якщо вона присутня в цільовому проєкті; якщо її там немає, цей рядок дасть помилку й потрібно виконати решту рядків без нього.
 
 `supabase-config.js` містить Project URL і public publishable/anon key, а не секрет. Будь-який відвідувач може прочитати браузерний код і цей ключ; безпека залежить від коректних SQL-політик і налаштувань Supabase. Supabase JS закріплений на версії `2.117.3`; ліцензія включена в `vendor/SUPABASE-JS-LICENSE.txt`.
 

@@ -826,4 +826,16 @@ begin
 end
 $$;
 
+-- Trigger functions run only as triggers; they must not be callable through the REST API.
+revoke all on function public.handle_new_soundcollab_user() from public, anon, authenticated;
+revoke all on function public.log_order_change() from public, anon, authenticated;
+revoke all on function public.log_meeting_change() from public, anon, authenticated;
+revoke all on function public.guard_profile_update() from public, anon, authenticated;
+revoke all on function public.guard_order_mutation() from public, anon, authenticated;
+revoke all on function public.guard_message_insert() from public, anon, authenticated;
+revoke all on function public.guard_meeting_insert() from public, anon, authenticated;
+revoke all on function public.prevent_meeting_update() from public, anon, authenticated;
+revoke all on function public.guard_deliverable_insert() from public, anon, authenticated;
+
+
 commit;
