@@ -74,3 +74,21 @@ textarea:focus{border-color:var(--purple);background:#fff}
 .role-fieldset .checkbox-label{display:inline-flex;margin-right:18px}
 @media(max-width:850px){.auth-layout,.order-workspace-grid{grid-template-columns:1fr;gap:22px}.chat-panel{position:static}.messages-list{height:300px}}
 @media(max-width:580px){.app-form,.app-panel,.auth-card .app-form{padding:18px}.dash-top{align-items:start;gap:18px;flex-direction:column}.app-order-card-head{flex-direction:column}.app-order-actions{justify-content:start}.meeting-card>div{align-items:start;flex-direction:column}.meeting-card .inline-actions{align-items:stretch}.inline-actions>*{max-width:100%}}
+.order-progress{background:#f7f5ef;border:1px solid var(--line);padding:22px;margin:8px 0 25px}
+.order-progress-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.order-progress-heading .eyebrow{margin:0 0 6px;font-size:9px}
+.order-progress-heading h3{font-size:20px;margin:0}
+.progress-percent{color:var(--purple);font-size:20px}
+.order-progress-track{height:8px;background:#e3e0d9;border-radius:8px;margin:20px 0}
+.order-progress-track span{display:block;height:100%;background:linear-gradient(90deg,var(--purple),#50ad79);border-radius:inherit;transition:width .35s ease}
+.order-progress-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));list-style:none;margin:0;padding:0}
+.order-progress-steps li{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#89858d;font-size:10px;line-height:1.35}
+.step-marker{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#e5e2dc;color:#77737c;font-size:11px;font-weight:800;z-index:1}
+.order-progress-steps li.is-complete{color:#367954}
+.order-progress-steps li.is-complete .step-marker{background:#d8eddf;color:#287146}
+.order-progress-steps li.is-current{color:var(--purple);font-weight:800}
+.order-progress-steps li.is-current .step-marker{background:var(--purple);color:#fff;box-shadow:0 0 0 4px #e6e1ff}
+.step-label{max-width:90px}
+.order-next-step{background:#e7f2e9;color:#315f43;padding:12px 14px;margin:18px 0 0;font-size:12px;line-height:1.5}
+.order-next-step.is-special{background:#fff0df;color:#78541b}
+@media(max-width:600px){.order-progress{padding:16px 12px}.order-progress-steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 4px}.order-progress-steps li{font-size:9px}.order-progress-track{margin:15px 0}}

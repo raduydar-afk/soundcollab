@@ -379,6 +379,68 @@ function statusActions(order, profile) {
   return actions.join("");
 }
 
+const ORDER_STAGES = [
+  { status: "draft", label: "Чернетка" },
+  { status: "requested", label: "Запит" },
+  { status: "accepted", label: "Прийнято" },
+  { status: "in_progress", label: "Виконання" },
+  { status: "delivered", label: "Здано" },
+  { status: "completed", label: "Завершено" },
+];
+
+function renderOrderProgress(order, profile) {
+  const progress = $("#order-progress");
+  if (!progress) return;
+  const normalIndex = ORDER_STAGES.findIndex((stage) => stage.status === order.status);
+  const stageIndex = normalIndex >= 0
+    ? normalIndex
+    : order.status === "declined" ? 1 : order.status === "disputed" ? 4 : 0;
+  const percentage = normalIndex >= 0 ? Math.round((normalIndex / (ORDER_STAGES.length - 1)) * 100) : stageIndex * 20;
+  const assigned = order.performer_id === profile.id;
+  let nextStep;
+  if (order.status === "draft") {
+    nextStep = order.client_id === profile.id ? "Наступний крок: надішліть запит виконавцю." : "Очікується запит від клієнта.";
+  } else if (order.status === "requested") {
+    nextStep = assigned || (!order.performer_id && profile.roles.includes("performer") && order.client_id !== profile.id)
+      ? "Наступний крок: виконавець приймає запит."
+      : order.performer_id ? "Очікуємо відповіді призначеного виконавця." : "Очікуємо, поки виконавець прийме відкриту заявку.";
+  } else if (order.status === "accepted") {
+    nextStep = assigned ? "Наступний крок: виконавець розпочинає роботу." : "Виконавець готується розпочати роботу.";
+  } else if (order.status === "in_progress") {
+    nextStep = assigned ? "Наступний крок: передайте результат посиланням або файлом." : "Виконавець працює над замовленням.";
+  } else if (order.status === "delivered") {
+    nextStep = order.client_id === profile.id ? "Наступний крок: перевірте результат і підтвердьте завершення." : "Очікуємо підтвердження клієнта.";
+  } else if (order.status === "completed") {
+    nextStep = "Замовлення завершене.";
+  } else if (order.status === "declined") {
+    nextStep = "Запит відхилений. Клієнт може створити новий запит або вибрати іншого виконавця.";
+  } else if (order.status === "cancelled") {
+    nextStep = "Замовлення скасоване.";
+  } else {
+    nextStep = profile.is_admin
+      ? "Відкритий спір: перегляньте листування та журнал, потім зафіксуйте рішення."
+      : "Замовлення на розгляді спору. Переглядайте оновлення в журналі.";
+  }
+
+  const specialState = ["declined", "cancelled", "disputed"].includes(order.status);
+  progress.innerHTML = `
+    <div class="order-progress-heading">
+      <div><p class="eyebrow">Хід замовлення</p><h3>${escapeHTML(statusText(order.status))}</h3></div>
+      <strong class="progress-percent">${percentage}%</strong>
+    </div>
+    <div class="order-progress-track" role="progressbar" aria-label="Прогрес замовлення"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percentage}"
+      aria-valuetext="${escapeHTML(statusText(order.status))}, ${percentage}%">
+      <span style="width:${percentage}%"></span>
+    </div>
+    <ol class="order-progress-steps">${ORDER_STAGES.map((stage, index) => {
+      const stepState = index < stageIndex ? "is-complete" : index === stageIndex ? "is-current" : "";
+      const stepLabel = index < stageIndex ? `${stage.label} — виконано` : index === stageIndex ? `${stage.label} — поточний етап` : stage.label;
+      return `<li class="${stepState}" ${index === stageIndex ? 'aria-current="step"' : ""}><span class="step-marker">${index < stageIndex ? "✓" : index + 1}</span><span class="step-label">${escapeHTML(stepLabel)}</span></li>`;
+    }).join("")}</ol>
+    <p class="order-next-step ${specialState ? "is-special" : ""}">${escapeHTML(nextStep)}</p>`;
+}
+
 async function loadOrderPage(user, profile) {
   if (!$("#order-workspace")) return;
   const orderId = new URLSearchParams(location.search).get("id");
@@ -401,6 +463,7 @@ async function loadOrderPage(user, profile) {
   $("#order-subtitle").textContent = `${order.service} · ₴ ${Number(order.budget).toLocaleString("uk-UA")} · ${order.format === "remote" ? "дистанційно" : "особиста зустріч"} · дедлайн ${formatDate(order.deadline)}`;
   $("#order-status").textContent = statusText(order.status);
   $("#order-status").className = `status-badge status-${order.status}`;
+  renderOrderProgress(order, profile);
   const people = await getProfilesById([order.client_id, order.performer_id]);
   $("#order-participants").textContent = `Клієнт: ${people[order.client_id]?.display_name || "Користувач"} · Виконавець: ${people[order.performer_id]?.display_name || "Ще не призначений"}`;
   $("#order-actions").innerHTML = statusActions(order, profile);
@@ -415,6 +478,7 @@ async function loadOrderPage(user, profile) {
     $("#order-title").textContent = current.title;
     $("#order-status").textContent = statusText(current.status);
     $("#order-status").className = `status-badge status-${current.status}`;
+    renderOrderProgress(current, profile);
     $("#order-actions").innerHTML = statusActions(current, profile);
     $("#meeting-form").hidden = !["accepted", "in_progress"].includes(current.status);
     $("#deliverable-form").hidden = current.performer_id !== user.id || current.status !== "in_progress";

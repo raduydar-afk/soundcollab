@@ -17,6 +17,7 @@
       <div id="order-workspace" class="order-workspace-grid" hidden>
         <section class="app-panel">
           <div class="dash-toolbar"><div><h2>Керування замовленням</h2><p id="order-participants" class="muted"></p></div><a href="client.html" class="text-link">До кабінету клієнта →</a></div>
+          <section id="order-progress" class="order-progress" aria-label="Прогрес виконання замовлення"></section>
           <div id="order-actions" class="order-actions"></div>
           <div id="meeting-section" class="subpanel"><h3>Зустрічі</h3><p class="meeting-safety">Для першої особистої зустрічі обирайте публічне місце та не передавайте чутливі дані.</p><div id="meetings-list"></div>
             <form id="meeting-form" class="app-form"><h4>Запропонувати зустріч</h4><label>Формат<select name="meeting_type"><option value="remote">Дистанційно</option><option value="in_person">Особисто</option></select></label><label>Дата й час<input name="scheduled_at" type="datetime-local" required></label>
@@ -35,6 +36,6 @@
     </div></section>
   </main>
   <footer class="site-footer"><div class="container footer-bottom"><span>SoundCollab · order workspace</span><span>Платежі та ескроу не підключені — не надсилайте платіжні дані в чат.</span></div></footer>
-  <script src="vendor/supabase-js-2.117.3.js"></script><script src="supabase-config.js"></script><script type="module" src="app.js"></script>
+  <script src="vendor/supabase-js-2.117.3.js"></script><script src="supabase-config.js"></script><script type="module" src="app.js?v=order-progress"></script>
 </body>
 </html>
