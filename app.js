@@ -87,6 +87,26 @@ const safeHttpsUrl = (value) => {
     return "";
   }
 };
+const videoProviderFromUrl = (value) => {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return null;
+    const host = url.hostname.toLowerCase();
+    if (host === "meet.google.com") return "meet";
+    if (host === "zoom.us" || host.endsWith(".zoom.us")) return "zoom";
+    if (host === "teams.microsoft.com") return "teams";
+    if (host === "meet.jit.si") return "jitsi";
+    return null;
+  } catch {
+    return null;
+  }
+};
+const VIDEO_PROVIDERS = {
+  meet: { label: "Google Meet", createUrl: "https://meet.google.com/" },
+  zoom: { label: "Zoom", createUrl: "https://zoom.us/meeting/schedule" },
+  teams: { label: "Microsoft Teams", createUrl: "https://teams.microsoft.com/" },
+  jitsi: { label: "Jitsi Meet", createUrl: "https://meet.jit.si/" },
+};
 
 function renderOrderCard(order, otherName = "") {
   const target = `order.html?id=${encodeURIComponent(order.id)}`;
@@ -519,10 +539,11 @@ async function loadOrderPage(user, profile) {
     $("#meetings-list").innerHTML = data.map((meeting) => {
       const map = safeHttpsUrl(meeting.map_url);
       const video = safeHttpsUrl(meeting.meeting_url);
+      const provider = meeting.meeting_type === "remote" ? videoProviderFromUrl(video || "") : null;
       const actions = meeting.status === "proposed" && meeting.proposer_id !== user.id && isParticipant
         ? `<div class="inline-actions"><button class="button button-small button-primary" type="button" data-meeting-response="confirmed" data-meeting="${escapeHTML(meeting.id)}">Підтвердити</button><button class="button button-small button-light" type="button" data-meeting-response="declined" data-meeting="${escapeHTML(meeting.id)}">Відхилити</button><input aria-label="Новий час" type="datetime-local" data-reschedule="${escapeHTML(meeting.id)}"><button class="button button-small button-light" type="button" data-meeting-response="rescheduled" data-meeting="${escapeHTML(meeting.id)}">Запропонувати інший час</button></div>`
         : "";
-      return `<article class="meeting-card"><div><strong>${meeting.meeting_type === "remote" ? "Дистанційна зустріч" : "Особиста зустріч"}</strong><span class="status-badge">${escapeHTML(statusText(meeting.status))}</span></div><p>${escapeHTML(formatDate(meeting.scheduled_at))}${meeting.location ? ` · ${escapeHTML(meeting.location)}` : ""}</p>${video ? `<a href="${escapeHTML(video)}" target="_blank" rel="noopener noreferrer">Відкрити посилання на кімнату</a>` : ""}${map ? `<a href="${escapeHTML(map)}" target="_blank" rel="noopener noreferrer">Відкрити карту</a>` : ""}${actions}</article>`;
+      return `<article class="meeting-card"><div><strong>${meeting.meeting_type === "remote" ? `Відеодзвінок · ${escapeHTML(VIDEO_PROVIDERS[provider]?.label || "зовнішній сервіс")}` : "Особиста зустріч"}</strong><span class="status-badge">${escapeHTML(statusText(meeting.status))}</span></div><p>${escapeHTML(formatDate(meeting.scheduled_at))}${meeting.location ? ` · ${escapeHTML(meeting.location)}` : ""}</p>${video ? `<a class="button button-small button-primary meeting-join" href="${escapeHTML(video)}" target="_blank" rel="noopener noreferrer">Приєднатися до дзвінка ↗</a>` : ""}${map ? `<a href="${escapeHTML(map)}" target="_blank" rel="noopener noreferrer">Відкрити карту ↗</a>` : ""}${actions}</article>`;
     }).join("") || "<p class='empty-state'>Зустрічей ще не запропоновано.</p>";
     $$("[data-meeting-response]").forEach((button) => button.addEventListener("click", async () => {
       const response = button.dataset.meetingResponse;
@@ -616,7 +637,11 @@ async function loadOrderPage(user, profile) {
     if (Number.isNaN(date.valueOf()) || date <= new Date()) return setMessage("#meeting-message", "Оберіть дату й час у майбутньому.", true);
     const meetingUrl = type === "remote" ? safeHttpsUrl(data.get("meeting_url")) : null;
     const mapUrl = type === "in_person" && data.get("map_url") ? safeHttpsUrl(data.get("map_url")) : null;
-    if (type === "remote" && !meetingUrl) return setMessage("#meeting-message", "Додайте підтримуване HTTPS-посилання на зустріч.", true);
+    const selectedProvider = data.get("video_provider");
+    if (type === "remote" && !meetingUrl) return setMessage("#meeting-message", "Відкрийте платформу, створіть зустріч, скопіюйте посилання-запрошення та вставте його сюди.", true);
+    if (type === "remote" && videoProviderFromUrl(meetingUrl) !== selectedProvider) {
+      return setMessage("#meeting-message", "Посилання не відповідає обраній платформі. Перевірте сервіс або змініть вибір у списку.", true);
+    }
     if (data.get("map_url") && !mapUrl) return setMessage("#meeting-message", "Посилання на карту має бути HTTP(S).", true);
     const { error: rpcError } = await supabase.rpc("create_meeting", {
       target_order: orderId,
@@ -674,8 +699,24 @@ async function loadOrderPage(user, profile) {
     $("[data-remote-fields]").hidden = !remote;
     $("[data-inperson-fields]").hidden = remote;
   });
+  const providerSelect = $("#meeting-form select[name='video_provider']");
+  const openProviderButton = $("[data-open-video-provider]");
+  const updateProviderButton = () => {
+    const provider = VIDEO_PROVIDERS[providerSelect?.value];
+    if (!provider || !openProviderButton) return;
+    openProviderButton.textContent = `Відкрити ${provider.label} для створення зустрічі ↗`;
+  };
+  providerSelect?.addEventListener("change", updateProviderButton);
+  updateProviderButton();
+  openProviderButton?.addEventListener("click", () => {
+    const provider = VIDEO_PROVIDERS[providerSelect?.value];
+    if (!provider) return;
+    window.open(provider.createUrl, "_blank", "noopener,noreferrer");
+  });
   $("[data-create-jitsi]")?.addEventListener("click", () => {
     const roomId = crypto.randomUUID().replaceAll("-", "");
+    providerSelect.value = "jitsi";
+    updateProviderButton();
     $("#meeting-form input[name='meeting_url']").value = `https://meet.jit.si/SoundCollab-${roomId}`;
   });
   $("#admin-dispute")?.addEventListener("submit", async (event) => {
