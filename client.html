@@ -26,16 +26,25 @@
         <p id="app-notice" class="app-notice" role="status">Перевіряємо підключення…</p>
         <div id="auth-required" class="app-panel" hidden><h2>Увійди, щоб продовжити</h2><p>Для замовлень потрібен акаунт SoundCollab.</p><a class="button button-primary" href="auth.html?redirect=client.html">Увійти або зареєструватися</a></div>
         <div id="client-app" hidden>
-          <div class="dash-toolbar"><div><h2>Нове замовлення</h2><p class="muted">Спочатку створиться чернетка, потім — запит виконавцю.</p></div><span id="client-greeting" class="muted"></span></div>
+          <div class="dash-toolbar"><div><h2>Оформити замовлення</h2><p class="muted">Заповніть короткий бриф. Ви зможете стежити за статусом і домовленостями в робочому просторі.</p></div><span id="client-greeting" class="muted"></span></div>
           <form id="order-create-form" class="app-form">
-            <div class="form-row"><label>Послуга<select name="service" required><option value="">Оберіть послугу</option><option>Написання пісень</option><option>Зведення</option><option>Мастеринг</option><option>Повний цикл виробництва</option><option>Оренда студії</option><option>Консультація з обладнання</option></select></label><label>Виконавець<select name="performer_id"><option value="">Без конкретного виконавця — відкрита заявка</option></select></label></div>
-            <label>Назва проєкту<input name="title" required maxlength="120" placeholder="Наприклад, зведення нового синглу"></label>
-            <label>Опис і очікуваний результат<textarea name="description" rows="4" required maxlength="5000" placeholder="Опишіть задачу, матеріали та побажання"></textarea></label>
-            <div class="form-row"><label>Бюджет, ₴<input name="budget" type="number" min="0" step="0.01" required></label><label>Формат<select name="format" required><option value="remote">Дистанційно</option><option value="in_person">Особиста зустріч</option></select></label></div>
-            <label>Бажаний дедлайн<input name="deadline" type="date"></label>
-            <button class="button button-primary" type="submit">Створити запит</button><p class="form-message" id="create-order-message" role="status"></p>
+            <div class="order-form-intro"><span class="order-form-step">01</span><div><strong>Бриф проєкту</strong><p>Чим точніше опишете задачу, тим легше виконавцю оцінити роботу.</p></div></div>
+            <fieldset class="order-form-section"><legend>Що потрібно зробити</legend>
+              <label>Напрям послуги<select name="service" required><option value="">Оберіть послугу</option><option>Написання пісень</option><option>Зведення</option><option>Мастеринг</option><option>Повний цикл виробництва</option><option>Оренда студії</option><option>Консультація з обладнання</option></select></label>
+              <label>Назва проєкту<input name="title" required maxlength="120" placeholder="Наприклад, зведення нового синглу"></label>
+              <label>Опишіть задачу<textarea name="description" rows="4" required maxlength="5000" placeholder="Що потрібно зробити? Які матеріали вже є? Який результат ви очікуєте?"></textarea><small class="field-hint">Не додавайте паролі чи платіжні дані. Посилання на матеріали можна узгодити з виконавцем у робочому просторі.</small></label>
+            </fieldset>
+            <fieldset class="order-form-section"><legend>Кому та як надіслати</legend>
+              <label>Виконавець<select name="performer_id"><option value="">Відкрита заявка — виконавець відгукнеться сам</option></select><small class="field-hint">Або оберіть конкретного фахівця зі списку.</small></label>
+              <div class="form-row"><label>Формат співпраці<select name="format" required><option value="remote">Онлайн</option><option value="in_person">Особиста зустріч</option></select></label><label>Бажаний термін<input name="deadline" type="date"></label></div>
+            </fieldset>
+            <fieldset class="order-form-section"><legend>Бюджет</legend>
+              <label>Орієнтовний бюджет, ₴<input name="budget" type="number" min="0" step="0.01" required placeholder="Наприклад, 5000"></label>
+              <p class="field-hint">Це орієнтир для узгодження вартості, а не оплата. Платежі в сервісі поки не підключені.</p>
+            </fieldset>
+            <div class="order-form-submit"><button class="button button-primary" type="submit">Надіслати запит <span aria-hidden="true">→</span></button><p class="form-message" id="create-order-message" role="status"></p></div>
           </form>
-          <div class="dash-toolbar app-section-heading"><h2>Мої замовлення</h2><button class="button button-small button-light" type="button" data-refresh>Оновити список</button></div>
+          <div class="dash-toolbar app-section-heading"><div><h2>Мої замовлення</h2><p class="muted">Тут відображаються запити, їхній поточний стан і наступні кроки.</p></div><button class="button button-small button-light" type="button" data-refresh>Оновити список</button></div>
           <div id="client-orders" class="app-order-list"></div>
           <section id="admin-disputes" class="admin-disputes app-panel" hidden><h2>Спори для розгляду</h2><p>Цей перелік доступний лише акаунтам з роллю адміністратора в базі даних.</p><div id="admin-disputes-list" class="app-order-list"></div></section>
         </div>

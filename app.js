@@ -15,14 +15,14 @@ const supabase = configured
 
 const STATUS_LABELS = {
   draft: "Чернетка",
-  requested: "Запитано",
-  accepted: "Прийнято",
+  requested: "Очікує виконавця",
+  accepted: "Виконавець прийняв",
   declined: "Відхилено",
-  in_progress: "У роботі",
-  delivered: "Здано",
+  in_progress: "Виконується",
+  delivered: "Очікує підтвердження",
   completed: "Завершено",
   cancelled: "Скасовано",
-  disputed: "Спір",
+  disputed: "На розгляді спору",
   proposed: "Запропоновано",
   confirmed: "Підтверджено",
   rescheduled: "Запропоновано інший час",
@@ -108,14 +108,58 @@ const VIDEO_PROVIDERS = {
   jitsi: { label: "Jitsi Meet", createUrl: "https://meet.jit.si/" },
 };
 
-function renderOrderCard(order, otherName = "") {
+const ORDER_CARD_STAGES = ["draft", "requested", "accepted", "in_progress", "delivered", "completed"];
+
+function orderCardProgress(order) {
+  const index = ORDER_CARD_STAGES.indexOf(order.status);
+  if (order.status === "disputed") return 80;
+  if (order.status === "declined") return 20;
+  if (order.status === "cancelled") return 0;
+  return Math.max(0, index) * 20;
+}
+
+function orderCardNextStep(order, viewerRole) {
+  if (order.status === "draft") return "Чернетка ще не надіслана. Перевірте бриф і надішліть запит.";
+  if (order.status === "requested") {
+    if (order.performer_id) return "Запит передано обраному виконавцю. Очікуйте на відповідь.";
+    return "Запит бачать виконавці. Щойно хтось його прийме, тут з’явиться робочий простір.";
+  }
+  if (order.status === "accepted") return "Виконавець прийняв замовлення. Наступний крок — почати роботу.";
+  if (order.status === "in_progress") {
+    return viewerRole === "client"
+      ? "Замовлення виконується. Домовленості, зустрічі та файли — у робочому просторі."
+      : "Замовлення у роботі. Оновлюйте клієнта та передайте результат у робочому просторі.";
+  }
+  if (order.status === "delivered") {
+    return viewerRole === "performer"
+      ? "Результат передано клієнту. Очікуйте на перевірку та підтвердження."
+      : "Результат передано. Перегляньте його та підтвердьте завершення у робочому просторі.";
+  }
+  if (order.status === "completed") return "Замовлення завершено. Історія та результат залишаються у робочому просторі.";
+  if (order.status === "declined") return "Виконавець відхилив запит. За потреби створіть новий та оберіть іншого фахівця.";
+  if (order.status === "cancelled") return "Замовлення скасовано.";
+  return "Замовлення на розгляді спору. Переглядайте листування та оновлення в робочому просторі.";
+}
+
+function renderOrderCard(order, otherName = "", viewerRole = "participant") {
   const target = `order.html?id=${encodeURIComponent(order.id)}`;
-  const budget = Number(order.budget).toLocaleString("uk-UA");
-  return `<article class="app-order-card">
-    <div class="app-order-card-head"><div><p class="eyebrow">${escapeHTML(order.service)}</p><h3>${escapeHTML(order.title)}</h3></div><span class="status-badge status-${escapeHTML(order.status)}">${escapeHTML(statusText(order.status))}</span></div>
-    <p>${escapeHTML(order.description)}</p>
-    <div class="app-order-meta"><span>${otherName ? `Учасник: ${escapeHTML(otherName)}` : "Замовлення SoundCollab"}</span><span>₴ ${escapeHTML(budget)}</span><span>До: ${escapeHTML(formatDate(order.deadline))}</span><span>${order.format === "remote" ? "Дистанційно" : "Особиста зустріч"}</span></div>
-    <a class="button button-small button-primary" href="${target}">Відкрити замовлення →</a>
+  const budget = Number(order.budget).toLocaleString("uk-UA", { maximumFractionDigits: 2 });
+  const progress = orderCardProgress(order);
+  const counterpartLabel = viewerRole === "client" ? "Виконавець" : viewerRole === "performer" ? "Клієнт" : "Учасник";
+  const counterpart = otherName || (order.performer_id ? "Профіль недоступний" : "Ще не призначений");
+  const statusLabel = statusText(order.status);
+  return `<article class="app-order-card client-order-card status-card-${escapeHTML(order.status)}">
+    <div class="client-order-topline"><span class="order-service-label">${escapeHTML(order.service)}</span><span class="status-badge status-${escapeHTML(order.status)}"><span class="status-indicator" aria-hidden="true"></span>${escapeHTML(statusLabel)}</span></div>
+    <div class="client-order-title-row"><div><h3>${escapeHTML(order.title)}</h3><span class="order-id-label">Замовлення № ${escapeHTML(order.id.slice(0, 8).toUpperCase())}</span></div><span class="order-budget"><small>Бюджет</small><strong>${escapeHTML(budget)} ₴</strong></span></div>
+    <p class="client-order-description">${escapeHTML(order.description)}</p>
+    <div class="client-order-progress-row"><div class="client-order-progress" role="progressbar" aria-label="Прогрес замовлення" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}" aria-valuetext="${escapeHTML(statusLabel)}, ${progress}%"><span style="width:${progress}%"></span></div><span>${progress}%</span></div>
+    <div class="client-order-details">
+      <div><span>${escapeHTML(counterpartLabel)}</span><strong>${escapeHTML(counterpart)}</strong></div>
+      <div><span>Формат</span><strong>${order.format === "remote" ? "Онлайн" : "Особисто"}</strong></div>
+      <div><span>Бажаний термін</span><strong>${escapeHTML(formatDate(order.deadline))}</strong></div>
+    </div>
+    <p class="client-order-next"><span class="next-step-icon" aria-hidden="true">↗</span><span>${escapeHTML(orderCardNextStep(order, viewerRole))}</span></p>
+    <div class="client-order-footer"><span class="order-demo-note">Оплата в сервісі поки не підключена</span><a class="button button-small button-primary" href="${target}">Відкрити замовлення <span aria-hidden="true">→</span></a></div>
   </article>`;
 }
 
@@ -135,7 +179,7 @@ async function loadAdminDisputes(profile) {
   if (error) throw error;
   const people = await getProfilesById(data.flatMap((order) => [order.client_id, order.performer_id]));
   $("#admin-disputes-list").innerHTML = data.length
-    ? data.map((order) => renderOrderCard(order, people[order.client_id]?.display_name || "Клієнт")).join("")
+    ? data.map((order) => renderOrderCard(order, people[order.client_id]?.display_name || "Клієнт", "admin")).join("")
     : "<p class='empty-state'>Відкритих спорів немає.</p>";
 }
 
@@ -159,8 +203,8 @@ async function loadClientDashboard(user, profile) {
     if (error) throw error;
     const profiles = await getProfilesById(orders.map((order) => order.performer_id));
     $("#client-orders").innerHTML = orders.length
-      ? orders.map((order) => renderOrderCard(order, profiles[order.performer_id]?.display_name || "Очікує виконавця")).join("")
-      : '<div class="app-panel"><p>Замовлень ще немає. Створи перший запит вище.</p></div>';
+      ? orders.map((order) => renderOrderCard(order, profiles[order.performer_id]?.display_name || "", "client")).join("")
+      : '<div class="orders-empty-state"><span class="orders-empty-icon" aria-hidden="true">♫</span><h3>Замовлень поки немає</h3><p>Заповніть форму вище — запит з’явиться тут разом зі статусом і наступними кроками.</p><a href="#order-create-form">Створити перше замовлення ↓</a></div>';
   };
   const loadPerformers = async () => {
     const { data, error } = await supabase.from("profiles").select("id,display_name,city")
@@ -182,7 +226,7 @@ async function loadClientDashboard(user, profile) {
     const data = new FormData(form);
     const button = $('button[type="submit"]', form);
     button.disabled = true;
-    setMessage("#create-order-message", "Створюємо чернетку та надсилаємо запит…");
+    setMessage("#create-order-message", "Зберігаємо бриф і надсилаємо запит…");
     try {
       const { data: created, error } = await supabase.from("orders").insert({
         client_id: user.id,
@@ -203,7 +247,7 @@ async function loadClientDashboard(user, profile) {
         setMessage("#create-order-message", `Чернетку створено, але запит не надіслано: ${messageForError(transitionError)} Відкрийте її та повторіть дію.`, true);
       } else {
         form.reset();
-        setMessage("#create-order-message", "Запит надіслано. Нове замовлення з’явиться у списку.");
+        setMessage("#create-order-message", "Запит надіслано виконавцю. Статус та наступні кроки відображаються нижче.");
       }
       await refresh();
     } catch (error) {
@@ -245,7 +289,7 @@ async function loadSpecialistDashboard(user, profile) {
         : order.status === "accepted"
           ? `<button class="button button-small button-primary" type="button" data-transition="in_progress" data-order="${escapeHTML(order.id)}">Почати роботу</button>`
           : "";
-      return `${renderOrderCard(order, people[order.client_id]?.display_name || "Клієнт")}${action ? `<div class="app-order-actions">${action}</div>` : ""}`;
+      return `${renderOrderCard(order, people[order.client_id]?.display_name || "Клієнт", "performer")}${action ? `<div class="app-order-actions">${action}</div>` : ""}`;
     }).join("") : '<div class="app-panel"><p>Поки немає вхідних запитів або призначених замовлень.</p></div>';
     $$("[data-transition]").forEach((button) => button.addEventListener("click", async () => {
       button.disabled = true;
